@@ -1,0 +1,70 @@
+{
+  "source": "2026-10-04 afternoon JEV telemetry replay (historically extracted)",
+  "track": "demo",
+  "odometer_verification": "UNVERIFIED",
+  "laps": [
+    {
+      "lap": 1,
+      "seconds": 144.1,
+      "sector1": 45.3,
+      "sector2": 50.3,
+      "sector3": 48.5
+    },
+    {
+      "lap": 2,
+      "seconds": 104.0,
+      "sector1": 36.0,
+      "sector2": 33.7,
+      "sector3": 34.3
+    },
+    {
+      "lap": 3,
+      "seconds": 101.5,
+      "sector1": 34.4,
+      "sector2": 32.3,
+      "sector3": 34.8
+    },
+    {
+      "lap": 4,
+      "seconds": 101.0,
+      "sector1": 34.3,
+      "sector2": 32.1,
+      "sector3": 34.6
+    },
+    {
+      "lap": 5,
+      "seconds": 102.8,
+      "sector1": 34.5,
+      "sector2": 32.8,
+      "sector3": 35.5
+    },
+    {
+      "lap": 6,
+      "seconds": 104.6,
+      "sector1": 35.7,
+      "sector2": 33.0,
+      "sector3": 35.9
+    },
+    {
+      "lap": 7,
+      "seconds": 100.4,
+      "sector1": 33.9,
+      "sector2": 32.8,
+      "sector3": 33.7
+    },
+    {
+      "lap": 8,
+      "seconds": 101.8,
+      "sector1": 34.9,
+      "sector2": 32.4,
+      "sector3": 34.5
+    },
+    {
+      "lap": 9,
+      "seconds": 203.6,
+      "sector1": 33.9,
+      "sector2": 32.0,
+      "sector3": 137.7
+    }
+  ]
+}

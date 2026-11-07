@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+  <uses-permission android:name="pleos.car.permission.CAR_DOORS" />
+  <uses-permission android:name="pleos.car.permission.TTS_SERVICE" />
+  <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+  <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>
+  <application android:allowBackup="false" android:fullBackupContent="false" android:dataExtractionRules="@xml/data_extraction_rules" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:label="플레오스 AI 레이스 엔지니어" android:theme="@android:style/Theme.Material.NoActionBar" android:usesCleartextTraffic="false">
+    <uses-library android:name="android.car" android:required="false" />
+    <activity android:name=".TtsProbeActivity" android:exported="false" />
+    <activity android:name=".MainActivity" android:exported="false" />
+    <activity android:name=".DashboardActivity" android:exported="true">
+      <meta-data android:name="distractionOptimized" android:value="true" />
+      <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+    </activity>
+  </application>
+</manifest>
