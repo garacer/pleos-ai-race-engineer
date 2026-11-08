@@ -116,7 +116,7 @@ class LocalSpeech(private val context: Context, private val changed: (String) ->
                 try { tts?.stop() } catch (_: Exception) {}
             }
         }
-        requestDeadline = deadline; handler.postDelayed(deadline, 14000)
+        requestDeadline = deadline; handler.postDelayed(deadline, 14000L + text.length * 200L) // long briefings need more than 14 s
         try { tts!!.speak(text) }
         catch (e: Exception) { if (state.fail(e.javaClass.simpleName)) unavailable("REQUEST_EXCEPTION") }
     }

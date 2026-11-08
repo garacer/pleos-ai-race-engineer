@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>플레오스 AI 레이스 엔지니어</title>
+<style>
+:root{--bg:#07090c;--text:#f3f5f7;--muted:#8b949e;--faint:#3a424c;--track:#1d242c;--accent:#ff6a2b;--good:#3ddc84;--bad:#ff4d5e;--best:#c49bff}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:calc(100vw / 105);background:var(--bg)}
+body{height:100vh;overflow:hidden;background:radial-gradient(ellipse at 75% 40%,#121820 0%,var(--bg) 60%);color:var(--text);
+  font-family:"Noto Sans KR","Pretendard",system-ui,sans-serif;display:grid;grid-template-rows:auto 1fr auto;padding:1.6rem 2.4rem 1.4rem;user-select:none}
+.num{font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+header{display:flex;align-items:center;gap:1.2rem}
+.brand{font-weight:800;font-size:1.05rem;letter-spacing:.02em}
+.brand b{color:var(--accent)}
+.meta{color:var(--muted);font-size:.9rem}
+.progress{flex:1;display:flex;gap:.4rem;margin-left:2rem}
+.progress i{flex:1;height:.28rem;border-radius:1rem;background:var(--faint);overflow:hidden;position:relative}
+.progress i.done{background:var(--text)}
+.progress i.on::after{content:"";position:absolute;inset:0;background:var(--text);transform-origin:left;animation:fill var(--dur,6s) linear forwards}
+.progress:not(.auto) i.on{background:var(--text)}.progress:not(.auto) i.on::after{display:none}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+main{display:grid;grid-template-columns:1fr 1.1fr;align-items:center;gap:2rem;min-height:0}
+.copy{padding-left:.4rem}
+.eyebrow{display:flex;align-items:center;gap:.7rem;color:var(--accent);font-weight:700;font-size:1.25rem;letter-spacing:.04em}
+.radio{display:inline-flex;gap:.18rem;align-items:flex-end;height:1.1rem}
+.radio span{width:.22rem;background:var(--accent);border-radius:.1rem;height:45%}
+.talking .radio span{animation:talk .5s ease-in-out infinite alternate}
+.radio span:nth-child(2){animation-delay:.15s}.radio span:nth-child(3){animation-delay:.3s}.radio span:nth-child(4){animation-delay:.05s}
+@keyframes talk{from{height:20%}to{height:100%}}
+h1{font-size:7.4rem;font-weight:800;letter-spacing:-.04em;line-height:1.02;margin:.9rem 0 1.4rem}
+.sub{font-size:1.7rem;line-height:1.5;color:#c7ced6;max-width:36rem;font-weight:500}
+.visual{height:100%;max-height:44rem;display:flex;align-items:center;justify-content:center}
+.visual svg{width:100%;height:100%;overflow:visible}
+.enter{animation:enter .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes enter{from{opacity:0;transform:translateY(1.2rem)}to{opacity:1;transform:none}}
+footer{display:flex;align-items:center;gap:1rem}
+.nav{width:5.2rem;height:5.2rem;border-radius:50%;border:2px solid var(--faint);font-size:1.8rem;display:flex;align-items:center;justify-content:center}
+.nav:disabled{opacity:.25}
+.listen{height:5.2rem;padding:0 2.4rem;border-radius:3rem;background:var(--text);color:var(--bg);font-weight:800;font-size:1.45rem;display:flex;gap:.7rem;align-items:center}
+.listen.on{background:var(--accent);color:#1a0800}
+.hint{margin-left:auto;color:var(--muted);font-size:.95rem;text-align:right;line-height:1.5}
+#driving{display:none;position:fixed;inset:0;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;text-align:center;z-index:5}
+.driving #driving{display:flex}
+#driving .k{color:var(--accent);font-size:1.6rem;font-weight:700}
+#driving .h{font-size:7rem;font-weight:800;letter-spacing:-.03em}
+#driving .m{color:var(--muted);font-size:1.5rem}
+</style></head>
+<body>
+<header>
+  <div class="brand">플레오스 <b>AI</b> 레이스 엔지니어</div>
+  <div class="meta">영암 · 2026.10.04 오후 · 기록 재생</div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<main id="stage">
+  <div class="copy" id="copy"></div>
+  <div class="visual" id="visual"></div>
+</main>
+
+<footer>
+  <button class="nav" id="prev" onclick="go(i-1)" aria-label="이전">‹</button>
+  <button class="nav" id="next" onclick="go(i+1)" aria-label="다음">›</button>
+  <button class="listen" id="listen" onclick="toggleAuto()">▶ 엔지니어 브리핑 듣기</button>
+  <div class="hint" id="hint">한 장씩 넘기거나, 듣기를 누르면 엔지니어가 처음부터 읽어 줍니다.</div>
+</footer>
+
+<div id="driving"><div class="k">다음 세션 미션</div><div class="h" id="dMission">–</div><div class="m">주행 중에는 미션만 표시합니다</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let D=null,T=null,i=0,auto=false,timer=null,proj=[];
+
+function render(d,t){D=d;T=t;project();
+  $('progress').innerHTML=D.cards.map(()=>'<i></i>').join('');
+  const m=D.cards[D.cards.length-1];$('dMission').textContent=m.headline;
+  go(0,true);}
+
+function go(n,quiet){
+  if(!D||n<0||n>=D.cards.length)return;
+  i=n;const c=D.cards[i];
+  $('copy').innerHTML='<div class="eyebrow"><span class="radio"><span></span><span></span><span></span><span></span></span>'+c.eyebrow+'</div><h1 class="num">'+c.headline+'</h1><p class="sub">'+c.sub+'</p>';
+  $('visual').innerHTML=VIS[c.id]?VIS[c.id]():'';
+  $('copy').classList.remove('enter');$('visual').classList.remove('enter');void $('copy').offsetWidth;$('copy').classList.add('enter');$('visual').classList.add('enter');
+  const dur=auto?duration(c):0;
+  [...$('progress').children].forEach((e,k)=>{e.className=k<i?'done':k===i?'on':'';});
+  $('progress').classList.toggle('auto',auto);$('progress').style.setProperty('--dur',dur/1000+'s');
+  $('prev').disabled=i===0;$('next').disabled=i===D.cards.length-1;
+  clearTimeout(timer);
+  if(auto){say(i);timer=setTimeout(()=>{if(i<D.cards.length-1)go(i+1);else stopAuto()},dur);}
+}
+function duration(c){return 2200+c.spoken.length*140}
+function toggleAuto(){auto?stopAuto():(auto=true,$('listen').classList.add('on'),$('listen').textContent='■ 멈춤',document.body.classList.add('talking'),go(i===D.cards.length-1?0:i))}
+function stopAuto(){auto=false;clearTimeout(timer);$('listen').classList.remove('on');$('listen').textContent='▶ 엔지니어 브리핑 듣기';document.body.classList.remove('talking');go(i);location.href='jev://stop'}
+function say(n){location.href='jev://speak?card='+n}
+
+/* ---- visuals ---- */
+function project(){const P=T.points,lat0=P.reduce((a,p)=>a+p.lat,0)/P.length,k=Math.cos(lat0*Math.PI/180);
+  const xy=P.map(p=>[p.lon*k,-p.lat]),xs=xy.map(p=>p[0]),ys=xy.map(p=>p[1]);
+  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys),s=Math.min(780/(maxx-minx),580/(maxy-miny));
+  proj=xy.map(p=>[110+(p[0]-minx)*s+(780-(maxx-minx)*s)/2,80+(p[1]-miny)*s+(580-(maxy-miny)*s)/2]);C=[proj.reduce((a,p)=>a+p[0],0)/proj.length,proj.reduce((a,p)=>a+p[1],0)/proj.length];}
+let C=[500,370];
+function out(p,d){const vx=p[0]-C[0],vy=p[1]-C[1],l=Math.hypot(vx,vy)||1;return [p[0]+vx/l*d,p[1]+vy/l*d]}
+const seg=(a,b)=>proj.slice(a,b+1).map((p,k)=>(k?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+const corner=n=>T.corners.find(c=>c.turn===n);
+function track(extra){return '<svg viewBox="0 0 1000 740"><path d="'+seg(0,proj.length-1)+'" fill="none" stroke="var(--track)" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>'+extra+'</svg>'}
+function pin(n,color,label){const p=proj[corner(n).index],q=out(p,34),dx=q[0]-p[0],anc=dx>12?'start':dx<-12?'end':'middle',dy=q[1]-p[1];
+  return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="13" fill="var(--bg)" stroke="'+color+'" stroke-width="4"/>'+(label?'<text x="'+q[0]+'" y="'+(q[1]+11+(anc==='middle'?(dy>0?20:-10):0))+'" text-anchor="'+anc+'" fill="'+color+'" font-size="32" font-weight="800">'+label+'</text>':'')}
+function sectorRange(k){const P=T.points,b=[0,33.9,66.7,P[P.length-1].t],f=t=>{const j=P.findIndex(p=>p.t>=t);return j<0?P.length-1:j};return [f(b[k-1]),f(b[k])]}
+
+const VIS={
+  session(){const L=D.laps,fl=L.filter(l=>l.kind==='FLYING'),best=Math.min(...fl.map(l=>l.time)),worst=Math.max(...fl.map(l=>l.time));
+    const W=900,H=560,bw=W/L.length;let s='<svg viewBox="0 0 1000 700">';
+    L.forEach((l,k)=>{const x=50+k*bw+bw*.18,w=bw*.64,isB=l.lap===D.best;
+      if(l.kind!=='FLYING'){s+='<rect x="'+x+'" y="'+(H-40)+'" width="'+w+'" height="40" rx="10" fill="none" stroke="var(--faint)" stroke-width="3" stroke-dasharray="8 7"/><text x="'+(x+w/2)+'" y="'+(H-60)+'" text-anchor="middle" fill="var(--muted)" font-size="26">'+(l.kind==='OUT'?'아웃':l.kind==='IN'?'인':'느림')+'</text>';}
+      else{const h=120+(worst-l.time)/(worst-best)*(H-180);s+='<rect x="'+x+'" y="'+(H-h)+'" width="'+w+'" height="'+h+'" rx="12" fill="'+(isB?'var(--accent)':'#2a323b')+'"/>';
+        if(isB)s+='<text x="'+(x+w/2)+'" y="'+(H-h-22)+'" text-anchor="middle" fill="var(--accent)" font-size="34" font-weight="800">BEST</text>';}
+      s+='<text x="'+(x+w/2)+'" y="'+(H+50)+'" text-anchor="middle" fill="'+(isB?'var(--text)':'var(--muted)')+'" font-size="30" font-weight="'+(isB?800:500)+'">'+l.lap+'</text>';});
+    s+='<text x="50" y="'+(H+110)+'" fill="var(--muted)" font-size="26">랩 · 막대가 높을수록 빠른 랩</text></svg>';return s},
+  potential(){const c=D.cards[1];const best=D.laps.find(l=>l.lap===D.best).time,gap=parseFloat(c.headline),theo=best-gap;
+    const X=v=>80+(v-(theo-3))/((best+0.6)-(theo-3))*820;
+    return '<svg viewBox="0 0 1000 600">'+
+      '<text x="80" y="150" fill="var(--muted)" font-size="34">이번 베스트 랩</text><rect x="80" y="175" width="'+(X(best)-80)+'" height="70" rx="14" fill="#2a323b"/><text x="'+(X(best)-24)+'" y="223" text-anchor="end" fill="var(--text)" font-size="38" font-weight="800">'+fmt(best)+'</text>'+
+      '<text x="80" y="345" fill="var(--muted)" font-size="34">섹터 베스트를 이으면</text><rect x="80" y="370" width="'+(X(theo)-80)+'" height="70" rx="14" fill="var(--best)"/><text x="'+(X(theo)-24)+'" y="418" text-anchor="end" fill="#160a28" font-size="38" font-weight="800">'+fmt(theo)+'</text>'+
+      '<rect x="'+X(theo)+'" y="370" width="'+(X(best)-X(theo))+'" height="70" rx="14" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="10 8"/>'+
+      '<text x="'+((X(theo)+X(best))/2)+'" y="500" text-anchor="middle" fill="var(--accent)" font-size="40" font-weight="800">−'+gap.toFixed(1)+'초</text></svg>'},
+  loss(){const a=corner(D.loss.from).index,b=corner(D.loss.to).index;
+    return track('<path d="'+seg(a,b)+'" fill="none" stroke="var(--bad)" stroke-opacity=".25" stroke-width="54" stroke-linejoin="round" stroke-linecap="round"/><path d="'+seg(a,b)+'" fill="none" stroke="var(--bad)" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>'+pin(D.loss.from,'var(--bad)','턴 '+D.loss.from)+pin(D.loss.to,'var(--bad)','턴 '+D.loss.to))},
+  good(){let s='';T.corners.filter(c=>c.referenceSpeed!=null).forEach(c=>{const d=c.subjectSpeed-c.referenceSpeed;s+=pin(c.turn,d>0?'var(--good)':'var(--bad)','T'+c.turn+' '+(d>0?'+':'')+Math.round(d))});
+    return track('<path d="'+seg(0,proj.length-1)+'" fill="none" stroke="#2a323b" stroke-width="6"/>'+s)},
+  mission(){const r=sectorRange(D.focus);
+    return track('<path d="'+seg(r[0],r[1])+'" fill="none" stroke="var(--accent)" stroke-opacity=".22" stroke-width="54" stroke-linejoin="round" stroke-linecap="round"/><path d="'+seg(r[0],r[1])+'" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>'+
+      (()=>{const p=out(proj[Math.floor((r[0]+r[1])/2)],80);return '<text x="'+p[0]+'" y="'+(p[1]+14)+'" text-anchor="middle" fill="var(--accent)" font-size="44" font-weight="800">S'+D.focus+'</text>'})())},
+};
+function fmt(s){const m=Math.floor(s/60),r=s-m*60;return m+':'+(r<10?'0':'')+r.toFixed(1)}
+
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(i+1);if(e.key==='ArrowLeft')go(i-1)});
+let sx=null;document.addEventListener('pointerdown',e=>sx=e.clientX);
+document.addEventListener('pointerup',e=>{if(sx==null)return;const dx=e.clientX-sx;sx=null;if(Math.abs(dx)>80)go(i+(dx<0?1:-1))});
+
+window.JEV_RENDER=render;
+window.JEV_DRIVING=d=>{document.documentElement.classList.toggle('driving',!!d);if(d&&auto)stopAuto()};
+window.JEV_VOICE=()=>{};
+</script>
+</body></html>

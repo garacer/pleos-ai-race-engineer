@@ -7,7 +7,6 @@
   <application android:allowBackup="false" android:fullBackupContent="false" android:dataExtractionRules="@xml/data_extraction_rules" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:label="플레오스 AI 레이스 엔지니어" android:theme="@android:style/Theme.Material.NoActionBar" android:usesCleartextTraffic="false">
     <uses-library android:name="android.car" android:required="false" />
     <activity android:name=".TtsProbeActivity" android:exported="false" />
-    <activity android:name=".MainActivity" android:exported="false" />
     <activity android:name=".DashboardActivity" android:exported="true">
       <meta-data android:name="distractionOptimized" android:value="true" />
       <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
