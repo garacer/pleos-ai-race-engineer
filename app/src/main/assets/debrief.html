@@ -87,11 +87,11 @@ function go(n,quiet){
   $('progress').classList.toggle('auto',auto);$('progress').style.setProperty('--dur',dur/1000+'s');
   $('prev').disabled=i===0;$('next').disabled=i===D.cards.length-1;
   clearTimeout(timer);
-  if(auto){say(i);timer=setTimeout(()=>{if(i<D.cards.length-1)go(i+1);else stopAuto()},dur);}
+  if(auto){say(i);timer=setTimeout(()=>{if(i<D.cards.length-1)go(i+1);else stopAuto(true)},dur);}
 }
 function duration(c){return 2200+c.spoken.length*140}
 function toggleAuto(){auto?stopAuto():(auto=true,$('listen').classList.add('on'),$('listen').textContent='■ 멈춤',document.body.classList.add('talking'),go(i===D.cards.length-1?0:i))}
-function stopAuto(){auto=false;clearTimeout(timer);$('listen').classList.remove('on');$('listen').textContent='▶ 엔지니어 브리핑 듣기';document.body.classList.remove('talking');go(i);location.href='jev://stop'}
+function stopAuto(finished){auto=false;clearTimeout(timer);$('listen').classList.remove('on');$('listen').textContent='▶ 엔지니어 브리핑 듣기';document.body.classList.remove('talking');go(i);if(!finished)location.href='jev://stop'}
 function say(n){location.href='jev://speak?card='+n}
 
 /* ---- visuals ---- */
@@ -140,6 +140,6 @@ document.addEventListener('pointerup',e=>{if(sx==null)return;const dx=e.clientX-
 
 window.JEV_RENDER=render;
 window.JEV_DRIVING=d=>{document.documentElement.classList.toggle('driving',!!d);if(d&&auto)stopAuto()};
-window.JEV_VOICE=()=>{};
+window.JEV_VOICE=()=>{};window.JEV_VEHICLE=()=>{};
 </script>
 </body></html>

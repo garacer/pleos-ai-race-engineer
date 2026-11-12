@@ -29,6 +29,15 @@ class DashboardActivity : Activity() {
     private var voiceText = ""
     private var speakCount = 0
     private var lines: List<String> = emptyList()
+    /** Card asked for while the previous one is still being spoken; spoken as soon as the engine is free. */
+    private var pendingCard: Int? = null
+
+    private fun speakCard(n: Int) {
+        val text = lines.getOrNull(n) ?: return
+        if (voice.canRequestForTest()) { pendingCard = null; voice.speak("card-${++speakCount}", text) }
+        else pendingCard = n
+    }
+    private fun cancelSpeech() { pendingCard = null; voice.stop() }
 
     private fun js(call: String) { if (pageReady) web.evaluateJavascript(call, null) }
     private fun q(s: String) = JSONObject.quote(s)
@@ -77,9 +86,8 @@ class DashboardActivity : Activity() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val u = request.url
                 if (u.scheme == "jev" && u.host == "speak" && detailsAllowed) {
-                    val text = u.getQueryParameter("card")?.toIntOrNull()?.let { lines.getOrNull(it) }
-                    if (text != null && voice.canRequestForTest()) voice.speak("card-${++speakCount}", text)
-                } else if (u.scheme == "jev" && u.host == "stop") voice.stop()
+                    u.getQueryParameter("card")?.toIntOrNull()?.let { speakCard(it) }
+                } else if (u.scheme == "jev" && u.host == "stop") cancelSpeech()
                 return true
             }
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
@@ -93,18 +101,21 @@ class DashboardActivity : Activity() {
                 return true
             }
         }
-        voice = LocalSpeech(this) { status -> if (speakCount > 0) { voiceText = status; pushState() } }
+        voice = LocalSpeech(this) { status ->
+            if (speakCount > 0) { voiceText = status; pushState() }
+            pendingCard?.let { if (detailsAllowed && voice.canRequestForTest()) speakCard(it) }
+        }
         sdk = ReadOnlyDoorProvider(this) { state ->
             vehicleText = if (state.freshness(SystemClock.elapsedRealtime()) == "LIVE") "차량 SDK 연결 · 문 상태 ${state.value}" else "차량 SDK 대기"
             pushState()
         }
-        ux = UxPolicy(this) { allowed, _ -> detailsAllowed = allowed; if (!allowed) voice.stop(); pushState() }
+        ux = UxPolicy(this) { allowed, _ -> detailsAllowed = allowed; if (!allowed) cancelSpeech(); pushState() }
         setContentView(web)
         val html = assets.open("debrief.html").bufferedReader(Charsets.UTF_8).use { it.readText() }
         web.loadDataWithBaseURL("https://jev.invalid/", html, "text/html", "UTF-8", null)
         voice.initialize()
     }
     override fun onStart() { super.onStart(); sdk.connect(); ux.start() }
-    override fun onStop() { voice.stop(); sdk.disconnect(); ux.stop(); super.onStop() }
+    override fun onStop() { cancelSpeech(); sdk.disconnect(); ux.stop(); super.onStop() }
     override fun onDestroy() { voice.close(); pageReady = false; web.stopLoading(); web.destroy(); super.onDestroy() }
 }
