@@ -16,7 +16,7 @@ import java.io.ByteArrayInputStream
 
 /**
  * Radio debrief: five engineer messages built by [Debrief] (unit-tested); the page only draws.
- * Page -> native: only "jev://speak?card=N" and "jev://stop" navigations, intercepted below. No JS bridge, no network.
+ * Page -> native: only "jev://speak?card=N", "jev://stop" and "jev://back" navigations, intercepted below. No JS bridge, no network.
  */
 class HighlightActivity : Activity() {
     private lateinit var web: WebView
@@ -88,6 +88,7 @@ class HighlightActivity : Activity() {
                 if (u.scheme == "jev" && u.host == "speak" && detailsAllowed) {
                     u.getQueryParameter("card")?.toIntOrNull()?.let { speakCard(it) }
                 } else if (u.scheme == "jev" && u.host == "stop") cancelSpeech()
+                else if (u.scheme == "jev" && u.host == "back") { cancelSpeech(); finish() }
                 return true
             }
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =

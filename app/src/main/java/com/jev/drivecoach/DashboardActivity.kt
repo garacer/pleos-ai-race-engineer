@@ -57,14 +57,22 @@ class DashboardActivity : Activity() {
             setBackgroundColor(Color.rgb(8, 19, 30))
         }
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        root.addView(bar, LinearLayout.LayoutParams(-1, dp(42)))
-        fun control(label: String) = Button(this).apply {
-            text = label; textSize = 11f
-            bar.addView(this, LinearLayout.LayoutParams(0, -1, 1f))
+        bar.setPadding(dp(12), dp(10), dp(12), 0)
+        root.addView(bar, LinearLayout.LayoutParams(-1, dp(90)))
+        fun control(label: String, primary: Boolean = false) = Button(this).apply {
+            text = label; textSize = 22f; isAllCaps = false; stateListAnimator = null
+            minHeight = 0; minimumHeight = 0
+            setTextColor(if (primary) Color.rgb(14, 30, 10) else Color.rgb(229, 239, 246))
+            if (primary) setTypeface(typeface, android.graphics.Typeface.BOLD)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(if (primary) Color.rgb(169, 229, 121) else Color.rgb(27, 48, 65))
+                cornerRadius = dp(14).toFloat(); setStroke(dp(1), if (primary) Color.rgb(169, 229, 121) else Color.rgb(41, 66, 86))
+            }
+            bar.addView(this, LinearLayout.LayoutParams(0, -1, 1f).apply { marginEnd = dp(12) })
         }
-        highlightButton = control("▶ 하이라이트 보기 (엔지니어 브리핑)")
+        highlightButton = control("▶ 하이라이트 보기 · 엔지니어 브리핑", true)
         highlightButton.setOnClickListener { startActivity(Intent(this, HighlightActivity::class.java)) }
-        sessionButton = control("9랩 기록 / 세션 요약")
+        sessionButton = control("9랩 기록 · 세션 요약")
         prepareButton = control("음성 엔진 준비 확인")
         speakButton = control("한국어 발화 1회 시험")
         probeButton = control("TTS API 진단")
@@ -73,11 +81,11 @@ class DashboardActivity : Activity() {
             tool.visibility = if (developmentTools) View.VISIBLE else View.GONE
         voiceStatus = TextView(this).apply {
             text = "자막 기본 · 동적 한국어 미시험 · SDK 준비와 발화 완료는 별도"
-            textSize = 10f; setTextColor(Color.rgb(165, 190, 209))
+            textSize = 14f; setTextColor(Color.rgb(165, 190, 209))
             setPadding(dp(8), dp(2), dp(8), dp(2)); maxLines = 2
             ellipsize = TextUtils.TruncateAt.END
         }
-        root.addView(voiceStatus, LinearLayout.LayoutParams(-1, dp(32)))
+        root.addView(voiceStatus, LinearLayout.LayoutParams(-1, dp(40)))
         web = WebView(this)
         root.addView(web, LinearLayout.LayoutParams(-1, 0, 1f))
         with(web.settings) {
