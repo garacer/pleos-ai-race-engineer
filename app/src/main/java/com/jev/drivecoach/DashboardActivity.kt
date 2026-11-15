@@ -73,6 +73,7 @@ class DashboardActivity : Activity() {
         highlightButton = control("▶ 하이라이트 보기 · 엔지니어 브리핑", true)
         highlightButton.setOnClickListener { startActivity(Intent(this, HighlightActivity::class.java)) }
         sessionButton = control("9랩 기록 · 세션 요약")
+        control("▶ AI 엔지니어 최종 분석").setOnClickListener { startActivity(Intent(this, AnalysisVideoActivity::class.java)) }
         prepareButton = control("음성 엔진 준비 확인")
         speakButton = control("한국어 발화 1회 시험")
         probeButton = control("TTS API 진단")

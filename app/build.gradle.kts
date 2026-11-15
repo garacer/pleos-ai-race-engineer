@@ -13,7 +13,7 @@ val signingPropsFile = file(
 val signingProps = Properties().apply { if (signingPropsFile.isFile) signingPropsFile.inputStream().use { load(it) } }
 
 android { useLibrary("android.car"); namespace = "com.jev.drivecoach"; compileSdk = 35
-  defaultConfig { applicationId = "com.jev.drivecoach"; minSdk = 28; targetSdk = 34; versionCode = 14; versionName = "0.5.1"; applicationIdSuffix = ".dashboard" }
+  defaultConfig { applicationId = "com.jev.drivecoach"; minSdk = 28; targetSdk = 34; versionCode = 15; versionName = "0.5.2"; applicationIdSuffix = ".dashboard" }
   signingConfigs {
     if (signingProps.containsKey("storeFile")) create("release") {
       storeFile = file(signingProps.getProperty("storeFile"))

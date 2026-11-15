@@ -8,6 +8,7 @@
     <uses-library android:name="android.car" android:required="false" />
     <activity android:name=".TtsProbeActivity" android:exported="false" />
     <activity android:name=".MainActivity" android:exported="false" />
+    <activity android:name=".AnalysisVideoActivity" android:exported="false" />
     <activity android:name=".HighlightActivity" android:exported="false">
       <meta-data android:name="distractionOptimized" android:value="true" />
     </activity>
